@@ -6,40 +6,45 @@ use std::time::UNIX_EPOCH;
 use std::os::unix::fs::MetadataExt;
 use std::env;
 
-const TRASH_PATH: &str = "/home/theo/test/";
-const DELETE_DELTA: u64 = 30;
+
+// TODO:
+// command line arguments
+// options struct
 
 
 struct Options {
-    verbose: bool,
     dry_run: bool,
+    trash_path: String,
+    delta_secs: u64,
 }
 impl Default for Options {
     fn default() -> Self {
-       Options { verbose: true, dry_run: true }
+        Options { dry_run: true, trash_path: String::from("/home/theo/test"), delta_secs: 30 }
+    }
+}
+impl Options {
+    fn set_delta_from_days(&mut self, days: u64) {
+        self.delta_secs = days * 24 * 60 * 60;
+    }
+    fn set_delta_from_hours(&mut self, hours: u64) {
+        self.delta_secs = hours * 60 * 60;
     }
 }
 
 fn main() {
     let mut options = Options::default();
+    options.set_delta_from_hours(10);
 
-    let args: Vec<String> = env::args().collect();
-
-    if args.contains(&String::from("--nv")) {
-        options.verbose = false;
-    }
-    if args.contains(&String::from("--dry-run")) {
-        options.dry_run = true;
-    }
+    let _args: Vec<String> = env::args().collect();
 
     let now = SystemTime::now().duration_since(UNIX_EPOCH).expect("Something horrible happened").as_secs();
-    let path = PathBuf::from(TRASH_PATH);
+    let path = PathBuf::from(&options.trash_path);
 
-    remove_traverse(&path , &now, &DELETE_DELTA, &options);
+    remove_traverse(&path , &now, &options);
 }
 
 
-fn remove_traverse(item: &PathBuf, time_now: &u64, treshold_secs: &u64, options: &Options) {
+fn remove_traverse(item: &PathBuf, time_now: &u64, options: &Options) {
 
 
     if !item.is_dir() { return }
@@ -61,11 +66,11 @@ fn remove_traverse(item: &PathBuf, time_now: &u64, treshold_secs: &u64, options:
                 continue
             }
         };
-        if should_delete(&dir_entry, time_now, treshold_secs) {
+        if should_delete(&dir_entry, time_now, &options.delta_secs) {
             remove(&dir_entry, options);
         } else {
             println!("Not Removing: {:?}, too young", dir_entry.path());
-            remove_traverse(&dir_entry.path(), time_now, treshold_secs, options);
+            remove_traverse(&dir_entry.path(), time_now, options);
         }
     }
 }
