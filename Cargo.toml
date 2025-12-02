@@ -3,5 +3,13 @@ name = "remover"
 version = "0.1.0"
 edition = "2024"
 
+
+[[bin]]
+name = "trash_man"
+path = "src/trash_man/main.rs"
+
+[[bin]]
+name = "maid"
+path = "src/maid/main.rs"
+
 [dependencies]
-chrono = "0.4.42"

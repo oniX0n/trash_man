@@ -19,7 +19,7 @@ struct Options {
 }
 impl Default for Options {
     fn default() -> Self {
-        Options { dry_run: true, trash_path: String::from("/home/theo/test"), delta_secs: 30 }
+        Options { dry_run: true, trash_path: String::from("/home/theo/test"), delta_secs: 600 }
     }
 }
 impl Options {
@@ -33,7 +33,6 @@ impl Options {
 
 fn main() {
     let mut options = Options::default();
-    options.set_delta_from_hours(10);
 
     let _args: Vec<String> = env::args().collect();
 
