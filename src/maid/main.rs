@@ -2,15 +2,29 @@ use std::path::Path;
 use std::env;
 use std::io;
 
-const TRASH_PATH: &str = "/home/theo/test";
+const TRASH_PATH: &str = "/home/theo/Trash";
 
 
-fn main() -> io::Result<()> {
+fn main() {
 
     let args: Vec<String> = env::args().collect();
 
-    let path_arg = &args[1];
+    if args.len() < 2 {
+        eprintln!("Usage: maid FILE...");
+    }
+
+    for i in 1..args.len() {
+        let arg = &args[i];
+        if let Err(error) = run(arg) { eprintln!("Error: {}", error) }
+    }
+
+}
+
+fn run(arg: &String) -> io::Result<()> {
+
+    let path_arg = arg;
     let path = Path::new(path_arg);
+
 
     match path.try_exists() {
         Ok(false) => {
