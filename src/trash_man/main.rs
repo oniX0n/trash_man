@@ -4,46 +4,25 @@ use std::path::PathBuf;
 use std::time::SystemTime;
 use std::time::UNIX_EPOCH;
 use std::os::unix::fs::MetadataExt;
-use std::env;
+
+const REMOVE_DELTA_SCS: u64 = 5 * 24 * 60 * 60;
+const TRASH_PATH: &str = "/home/theo/Trash/";
+const DRY_RUN: bool = false;
 
 
-// TODO:
-// command line arguments
-// options struct
 
-
-struct Options {
-    dry_run: bool,
-    trash_path: String,
-    delta_secs: u64,
-}
-impl Default for Options {
-    fn default() -> Self {
-        Options { dry_run: true, trash_path: String::from("/home/theo/test"), delta_secs: 600 }
-    }
-}
-impl Options {
-    fn set_delta_from_days(&mut self, days: u64) {
-        self.delta_secs = days * 24 * 60 * 60;
-    }
-    fn set_delta_from_hours(&mut self, hours: u64) {
-        self.delta_secs = hours * 60 * 60;
-    }
-}
 
 fn main() {
-    let mut options = Options::default();
 
-    let _args: Vec<String> = env::args().collect();
 
     let now = SystemTime::now().duration_since(UNIX_EPOCH).expect("Something horrible happened").as_secs();
-    let path = PathBuf::from(&options.trash_path);
+    let trash_path = PathBuf::from(TRASH_PATH);
 
-    remove_traverse(&path , &now, &options);
+    remove_traverse(&trash_path , &now);
 }
 
 
-fn remove_traverse(item: &PathBuf, time_now: &u64, options: &Options) {
+fn remove_traverse(item: &PathBuf, time_now: &u64) {
 
 
     if !item.is_dir() { return }
@@ -65,11 +44,11 @@ fn remove_traverse(item: &PathBuf, time_now: &u64, options: &Options) {
                 continue
             }
         };
-        if should_delete(&dir_entry, time_now, &options.delta_secs) {
-            remove(&dir_entry, options);
+        if should_delete(&dir_entry, time_now, &REMOVE_DELTA_SCS) {
+            remove(&dir_entry);
         } else {
             println!("Not Removing: {:?}, too young", dir_entry.path());
-            remove_traverse(&dir_entry.path(), time_now, options);
+            remove_traverse(&dir_entry.path(), time_now);
         }
     }
 }
@@ -88,7 +67,7 @@ fn should_delete(item: &DirEntry, time_now: &u64, treshold_secs: &u64) -> bool {
     }
 }
 
-fn remove(item: &DirEntry, options: &Options) {
+fn remove(item: &DirEntry) {
 
     let file_type =  match item.file_type() {
         Ok(file_type) => file_type,
@@ -99,7 +78,7 @@ fn remove(item: &DirEntry, options: &Options) {
     };
 
     let remove_result = if file_type.is_dir() {
-        if !options.dry_run {
+        if !DRY_RUN {
             println!("Remove: {:?}", item.path());
             fs::remove_dir_all(item.path())
         } else {
@@ -107,7 +86,7 @@ fn remove(item: &DirEntry, options: &Options) {
             Ok(())
         }
     } else if file_type.is_file() {
-        if !options.dry_run {
+        if !DRY_RUN {
             println!("Remove: {:?}", item.path());
             fs::remove_file(item.path())
         } else {
