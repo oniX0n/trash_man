@@ -42,7 +42,7 @@ fn run(arg: &String) -> io::Result<()> {
 
     let time = chrono::Local::now();
 
-    let target_str = format!("{}/{}-{}", TRASH_PATH, name, time.format("%d-%m-%H:%M:%S"));
+    let target_str = format!("{}/{}-{}", TRASH_PATH, time.format("%d-%m-%H:%M:%S"), name);
     let target_path = Path::new(&target_str);
 
     std::fs::create_dir_all(target_path.parent().ok_or(io::Error::other("Couldn't get parent of path"))?)?;
