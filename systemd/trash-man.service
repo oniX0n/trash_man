@@ -1,0 +1,9 @@
+[Unit]
+Description=Cleanup my Trash directory
+After=default.target
+
+[Service]
+ExecStart=trash_man
+
+[Install]
+WantedBy=multi-user.target
