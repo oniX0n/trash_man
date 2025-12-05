@@ -25,8 +25,6 @@ fn main() {
 fn remove_traverse(item: &PathBuf, time_now: &u64) {
 
 
-    if !item.is_dir() { return }
-
 
     let read_dir_iterator = match fs::read_dir(item) {
         Ok(iterator) => iterator,
@@ -48,7 +46,6 @@ fn remove_traverse(item: &PathBuf, time_now: &u64) {
             remove(&dir_entry);
         } else {
             println!("Not Removing: {:?}, too young", dir_entry.path());
-            remove_traverse(&dir_entry.path(), time_now);
         }
     }
 }
